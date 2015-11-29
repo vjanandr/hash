@@ -19,6 +19,6 @@ class hashMap {
     protected:
         int table_length;
         int number_of_elements;
-}
+};
 
 #endif
