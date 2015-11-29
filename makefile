@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall
 ODIR=obj
-SOURCES=hash.cpp hash_util.cpp
+SOURCES=hashMap.cpp hashUtil.cpp hashOpen.cpp
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst %,$(ODIR)/%,$(_OBJECTS))
 
@@ -17,5 +17,5 @@ $(ODIR)/%.o: %.cpp
 	echo "Target $@"
 	$(CC) -c -o $@ $<
 
-hashmod: $(OBJECTS) hashmodmain.cpp
+hashmod: $(OBJECTS) hashModMain.cpp
 	$(CC) -o $@ $^
