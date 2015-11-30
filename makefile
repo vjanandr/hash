@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall
 ODIR=obj
-SOURCES=hashMap.cpp hashUtil.cpp hashOpen.cpp
+SOURCES=hashMap.cpp hashUtil.cpp hashOpen.cpp logger.cpp
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst %,$(ODIR)/%,$(_OBJECTS))
 
