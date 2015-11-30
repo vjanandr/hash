@@ -17,7 +17,7 @@ class hashMapOpen: public hashMap
         hashMapOpen(int tableLength);
         hashMapOpen();
         ~hashMapOpen();
-        apiRetVal walk(comparecbk cbk);
+        apiRetVal walk(walkcbk cbk);
         apiRetVal find(void *data, uint32_t byteLength, comparecbk cbk);
         apiRetVal add(void *data, uint32_t byteLength, comparecbk cbk);
         apiRetVal remove(void *data, uint32_t byteLength, comparecbk cbk);
@@ -30,7 +30,6 @@ class hashMapOpen: public hashMap
         uint32_t hashCRC(char *bytes, uint32_t len);
         void tableInit();
         uint32_t getHashKey(void *data, uint32_t byteLength);
-
 };
 
 #endif

@@ -53,25 +53,25 @@ hashMapOpen::hashSimpleModString (char *str, uint32_t bytelength)
 }
 
 uint32_t 
-hashMapOpen::getHashKey (hashNodeKey *nodeKey)
+hashMapOpen::getHashKey (void *data, uint32_t byteLength) 
 {
     uint32_t hkey;
 
     switch (hashType) {
         case HASHING_SIMPLE_MOD_INTEGER:
-            hkey = hashSimpleModInteger(nodeKey->intKey);
+            hkey = hashSimpleModInteger(*((int *)data));
             break;
         case HASHING_SIMPLE_MOD_STRING:
-            hkey = hashSimpleModString(nodeKey->strKey, nodeKey->keyByteLength);
+            hkey = hashSimpleModString((char *)data, byteLength);
             break;
         case HASHING_CRC:
-            hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength);
+            hkey = hashCRC((char *)data, byteLength);
             break;
     }
     return hkey;
 }
 
-apiRetVal hashMapOpen::add (hashNodeKey *key, void *data);
+apiRetVal hashMapOpen::add (void *data, uint32_t byteLength, comparecbk cbk)
 {
     uint32_t hashKey;
     listNode *node, *newNode = NULL;
@@ -79,14 +79,12 @@ apiRetVal hashMapOpen::add (hashNodeKey *key, void *data);
     if (data) {
         return (API_RETVAL_INVALID_INPUT);
     }
-    hashKey = getHashKey(key);
+    hashKey = getHashKey(data, byteLength);
     node = hashTable[hashKey];
     newNode = (listNode *)malloc(sizeof(listNode));
     newNode->data = data;
-    newNode->nodeKey = *key;
     hashTable[hashKey] = newNode;
     newNode->next = node;
-    newNode->nodeState = HASH_NODE_USED;
     numberOfElements++;
     return API_RETVAL_SUCCESS;
 }
@@ -110,46 +108,4 @@ hashMapOpen::walk (walkcbk cbk)
         }
         tableIndex++;
     }
-    return API_RETVAL_SUCCESS;
-}
-
-apiRetVal
-hashMapOpen::find (hashNodeKey *key, void **data)
-{
-    hashNode *node = NULL;
-
-    hashKey = getHashKey(key);
-    node = hashTable[hashKey];
-    while (node) {
-        if (keyCmp(key, node->nodeKey)) {
-            *data = node->data;
-            return (API_RETVAL_SUCCESS);
-        }
-        node = node->next;
-    }
-    return API_RETVAL_DATA_NOT_FOUND;
-}
-
-apiRetVal
-hashMapOpen::remove (hashNodeKey *key, void **data)
-{
-    hashNode *node = NULL, *prevNode = NULL;
-
-    hashKey = getHashKey(key);
-    node = hashTable[hashKey];
-    while (node) {
-        if (keyCmp(key, node->nodeKey)) {
-            *data = node->data;
-            if (!prevNode) {
-                // This is the first node.
-                hashTable[hashKey] = node->next;
-            } else {
-                prevNode->next = node->next;
-            }
-            return (API_RETVAL_SUCCESS);
-        }
-        prevNode = node;
-        node = node->next;
-    }
-    return API_RETVAL_DATA_NOT_FOUND;
 }
