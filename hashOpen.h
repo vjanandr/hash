@@ -18,16 +18,19 @@ class hashMapOpen: public hashMap
         hashMapOpen();
         ~hashMapOpen();
         apiRetVal walk(comparecbk cbk);
-        apiRetVal find(void *data, comparecbk cbk);
-        apiRetVal add(void *data, comparecbk cbk);
-        apiRetVal remove(void *data, comparecbk cbk);
+        apiRetVal find(void *data, uint32_t byteLength, comparecbk cbk);
+        apiRetVal add(void *data, uint32_t byteLength, comparecbk cbk);
+        apiRetVal remove(void *data, uint32_t byteLength, comparecbk cbk);
 
     private:
-        listNode *hashTable[];
+        listNode **hashTable;
         hashEnum hashType;
         uint32_t hashSimpleModInteger(uint32_t key);
-        uint32_t hashSimpleModString(char *str);
+        uint32_t hashSimpleModString(char *str, uint32_t bytelength);
         uint32_t hashCRC(char *bytes, uint32_t len);
+        void tableInit();
+        uint32_t getHashKey(void *data, uint32_t byteLength);
+
 };
 
 #endif

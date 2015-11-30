@@ -7,14 +7,16 @@ OBJECTS=$(patsubst %,$(ODIR)/%,$(_OBJECTS))
 
 all: mkdir hashmod
 
+clean:
+	rm -rf obj
 
 mkdir:
-	echo "Making obj dir"
+	@echo "Making obj dir"
 	mkdir -p obj
 
 
 $(ODIR)/%.o: %.cpp
-	echo "Target $@"
+	@echo "Target $@"
 	$(CC) -c -o $@ $<
 
 hashmod: $(OBJECTS) hashModMain.cpp
