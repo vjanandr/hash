@@ -19,8 +19,8 @@ typedef struct hashNodeKey_ {
     union {
         uint32_t intKey;
         char *strKey;
-        void *byteKey;
-    }
+        uint8_t *byteKey;
+    };
 } hashNodeKey;
 
 typedef struct hashNode_ {

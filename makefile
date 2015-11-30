@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-Wall
+CC=g++
+CFLAGS=-Wall -g
 ODIR=obj
 SOURCES=hashMap.cpp hashUtil.cpp hashMapOpen.cpp logger.cpp
 _OBJECTS=$(SOURCES:.cpp=.o)
@@ -9,6 +9,7 @@ all: mkdir hashmod
 
 clean:
 	rm -rf obj
+	rm -rf hashmod
 
 mkdir:
 	@echo "Making obj dir"
@@ -17,7 +18,7 @@ mkdir:
 
 $(ODIR)/%.o: %.cpp
 	@echo "Target $@"
-	$(CC) -c -o $@ $<
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 hashmod: $(OBJECTS) hashModMain.cpp
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(CFLAGS)

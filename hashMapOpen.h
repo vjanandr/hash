@@ -2,7 +2,7 @@
 #define __HASH_OPEN_H__
 
 #include "hashMap.h"
-#include "listNode.h"
+#include "hashNode.h"
 
 typedef enum hashEnum_ {
     HASHING_SIMPLE_MOD_INTEGER,
@@ -13,23 +13,23 @@ typedef enum hashEnum_ {
 class hashMapOpen: public hashMap
 {
     public:
-        hashMapOpen(int tableLength, hashEnum hashtype);
-        hashMapOpen(int tableLength);
-        hashMapOpen();
+        hashMapOpen(int tableLength, hashEnum hashtype, logger *log);
+        hashMapOpen(int tableLength, logger *log);
+        hashMapOpen(logger *log);
         ~hashMapOpen();
         apiRetVal walk(walkcbk cbk);
-        apiRetVal find(void *data, uint32_t byteLength, comparecbk cbk);
-        apiRetVal add(void *data, uint32_t byteLength, comparecbk cbk);
-        apiRetVal remove(void *data, uint32_t byteLength, comparecbk cbk);
+        apiRetVal find(hashNodeKey *key, void **data);
+        apiRetVal add(hashNodeKey *key, void *data);
+        apiRetVal remove(hashNodeKey *key, void **data);
 
     private:
-        listNode **hashTable;
+        hashNode **hashTable;
         hashEnum hashType;
         uint32_t hashSimpleModInteger(uint32_t key);
         uint32_t hashSimpleModString(char *str, uint32_t bytelength);
-        uint32_t hashCRC(char *bytes, uint32_t len);
+        uint32_t hashCRC(uint8_t *bytes, uint32_t len);
         void tableInit();
-        uint32_t getHashKey(void *data, uint32_t byteLength);
+        uint32_t getHashKey(hashNodeKey *nodeKey);
 };
 
 #endif

@@ -67,8 +67,10 @@ void logger::setError (bool on)
 void logger::logg (const char *levelstr, 
                    const char *fmt, va_list vargs)
 {
-    fprintf(logFile, "[%s] %s", prgmName, levelstr);
-    fprintf(logFile, fmt, vargs);
+    char buf[1024];
+    fprintf(logFile, "[%s] [%-7s] - ", prgmName, levelstr);
+    sprintf(buf, fmt, vargs);
+    fprintf(logFile, "%s", buf);
 }
 
 void logger::verbose (const char *fmt, ...)
@@ -79,6 +81,7 @@ void logger::verbose (const char *fmt, ...)
     if (verboseOn) {
         logg("Verbose",fmt, vargs);
     }
+    va_end(vargs);
 }
 
 void logger::debug (const char *fmt, ...)

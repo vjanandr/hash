@@ -9,7 +9,7 @@
     GENERATOR(API_RETVAL_SUCCESS, "Api returned success")           \
     GENERATOR(API_RETVAL_INVALID_INPUT, "Invalid input to API")     \
     GENERATOR(API_RETVAL_FAILED, "Api returned failure")            \
-    GENERATOR(API_RETVAL_DATA_NODE_FOUND, "Data not found")         \
+    GENERATOR(API_RETVAL_DATA_NOT_FOUND, "Data not found")          \
     GENERATOR(API_RETVAL_MAX, "Api Max retval")                     \
 
 #define API_ENUM_GENERATOR(ENUM,STRING) ENUM,

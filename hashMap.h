@@ -2,6 +2,8 @@
 #define __HASHMAP__
 
 #include "hashUtil.h"
+#include "hashNode.h"
+#include "logger.h"
 
 typedef enum cbkRetVal_ {
     CBK_RET_CONTINUE,
@@ -13,18 +15,20 @@ typedef cbkRetVal (*walkcbk)(void *data);
 
 class hashMap {
     public:
-        hashMap(int tableLength);
-        hashMap();
+        hashMap(int tableLength, logger *log);
+        hashMap(logger *log);
         virtual apiRetVal walk(walkcbk cbk) = 0;
         virtual apiRetVal find(hashNodeKey *key, void **data) = 0;
         virtual apiRetVal add(hashNodeKey *key, void *data) = 0;
-        virtual apiRetVal remove(hashNodeKey *key void **data) = 0;
+        virtual apiRetVal remove(hashNodeKey *key, void **data) = 0;
         int getTableLength();
         int getNumberOfElements();
 
     protected:
-        int tableLength;
-        int numberOfElements;
+        logger *log;
+        uint32_t tableLength;
+        uint32_t numberOfElements;
+        bool keyCmp(hashNodeKey *key1, hashNodeKey *key2);
 };
 
 #endif

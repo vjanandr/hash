@@ -1,30 +1,32 @@
 #include <string.h>
-#include "hashOpen.h"
-#include "listNode.h"
+#include "hashMapOpen.h"
+#include "hashNode.h"
 
 void hashMapOpen::tableInit ()
 {
-    this->hashTable = (listNode **)malloc(sizeof(listNode *) * 
+    this->hashTable = (hashNode **)malloc(sizeof(hashNode *) * 
                                          this->tableLength);
-    memset(this->hashTable, sizeof(listNode *) * this->tableLength, 0);
+    memset(this->hashTable, sizeof(hashNode *) * this->tableLength, 0);
+    log->debug("Hash Open map Table Length %d\n", tableLength);
 }
     
 
-hashMapOpen::hashMapOpen (int tableLength, hashEnum hashtype) 
-    : hashMap(tableLength)
+hashMapOpen::hashMapOpen (int tableLength, hashEnum hashtype, logger *log) 
+    : hashMap(tableLength, log)
 {
     this->hashType = hashtype;
     tableInit();
 }
 
-hashMapOpen::hashMapOpen (int tableLength)
-    : hashMap(tableLength)
+hashMapOpen::hashMapOpen (int tableLength, logger *log)
+    : hashMap(tableLength, log)
 {
     this->hashType = HASHING_CRC;
     tableInit();
 }
 
-hashMapOpen::hashMapOpen ()
+hashMapOpen::hashMapOpen (logger *log)
+    : hashMap(log)
 {
     this->hashType = HASHING_CRC;
     tableInit();
@@ -53,38 +55,46 @@ hashMapOpen::hashSimpleModString (char *str, uint32_t bytelength)
 }
 
 uint32_t 
-hashMapOpen::getHashKey (void *data, uint32_t byteLength) 
+hashMapOpen::hashCRC (uint8_t *bytes,  uint32_t keyByteLength)
+{
+    return (0);
+}
+
+uint32_t 
+hashMapOpen::getHashKey (hashNodeKey *nodeKey)
 {
     uint32_t hkey;
 
     switch (hashType) {
         case HASHING_SIMPLE_MOD_INTEGER:
-            hkey = hashSimpleModInteger(*((int *)data));
+            hkey = hashSimpleModInteger(nodeKey->intKey);
             break;
         case HASHING_SIMPLE_MOD_STRING:
-            hkey = hashSimpleModString((char *)data, byteLength);
+            hkey = hashSimpleModString(nodeKey->strKey, nodeKey->keyByteLength);
             break;
         case HASHING_CRC:
-            hkey = hashCRC((char *)data, byteLength);
+            hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength);
             break;
     }
     return hkey;
 }
 
-apiRetVal hashMapOpen::add (void *data, uint32_t byteLength, comparecbk cbk)
+apiRetVal hashMapOpen::add (hashNodeKey *key, void *data)
 {
     uint32_t hashKey;
-    listNode *node, *newNode = NULL;
+    hashNode *node, *newNode = NULL;
 
     if (data) {
         return (API_RETVAL_INVALID_INPUT);
     }
-    hashKey = getHashKey(data, byteLength);
+    hashKey = getHashKey(key);
     node = hashTable[hashKey];
-    newNode = (listNode *)malloc(sizeof(listNode));
+    newNode = (hashNode *)malloc(sizeof(hashNode));
     newNode->data = data;
+    newNode->nodeKey = *key;
     hashTable[hashKey] = newNode;
     newNode->next = node;
+    newNode->nodeState = HASH_NODE_USED;
     numberOfElements++;
     return API_RETVAL_SUCCESS;
 }
@@ -92,7 +102,7 @@ apiRetVal hashMapOpen::add (void *data, uint32_t byteLength, comparecbk cbk)
 apiRetVal 
 hashMapOpen::walk (walkcbk cbk)
 {
-    listNode *node;
+    hashNode *node;
     uint32_t tableIndex = 0;
 
     if (!cbk) {
@@ -108,4 +118,57 @@ hashMapOpen::walk (walkcbk cbk)
         }
         tableIndex++;
     }
+    return API_RETVAL_SUCCESS;
+}
+
+apiRetVal
+hashMapOpen::find (hashNodeKey *key, void **data)
+{
+    uint32_t hashKey;
+    hashNode *node = NULL;
+
+    hashKey = getHashKey(key);
+    if (hashKey > tableLength) {
+        return API_RETVAL_INVALID_INPUT;
+    }
+
+    node = hashTable[hashKey];
+    while (node) {
+        if (keyCmp(key, &node->nodeKey)) {
+            *data = node->data;
+            return (API_RETVAL_SUCCESS);
+        }
+        node = node->next;
+    }
+    return API_RETVAL_DATA_NOT_FOUND;
+}
+
+apiRetVal
+hashMapOpen::remove (hashNodeKey *key, void **data)
+{
+    uint32_t hashKey;
+    hashNode *node = NULL, *prevNode = NULL;
+
+    hashKey = getHashKey(key);
+    if (hashKey > tableLength) {
+        return API_RETVAL_INVALID_INPUT;
+    }
+    node = hashTable[hashKey];
+
+    while (node) {
+        if (keyCmp(key, &node->nodeKey)) {
+            *data = node->data;
+            if (!prevNode) {
+                // This is the first node.
+                hashTable[hashKey] = node->next;
+            } else {
+                prevNode->next = node->next;
+            }
+            free(node);
+            return (API_RETVAL_SUCCESS);
+        }
+        prevNode = node;
+        node = node->next;
+    }
+    return API_RETVAL_DATA_NOT_FOUND;
 }
