@@ -8,17 +8,26 @@
 
 using namespace std;
 
+cbkRetVal
+walkCbkFunc (hashNodeKey *key, void *data)
+{
+    printf("\n%-10d | %s",key->intKey, (char *)data);
+    return CBK_RET_CONTINUE;
+}
+
 int main (int argc, char *argv[])
 {
     int nameLen;
     ifstream inFile;
-    string fileName = "./intKeyValue.txt";
+    string fileName;
     char line[256], *name = NULL;
     uint32_t slNo;
     hashNodeKey key;
     logger *log = new logger(argv[0], stdout);
     log->setDebug(true);
     log->setVerbose(true);
+    log->setError(true);
+    log->setInfo(true);
 
     hashMap *hash = new hashMapOpen(10, HASHING_SIMPLE_MOD_INTEGER, log);
 
@@ -47,9 +56,11 @@ int main (int argc, char *argv[])
         key.intKey = slNo;
         hash->add(&key, name);
     }
-
-
     inFile.close();
 
+    printf("\n%-10s | Name","Sl.No");
+    printf("\n-------------------------");
+    hash->walk(walkCbkFunc);
+    cout << "\n";
     return 0;
 }

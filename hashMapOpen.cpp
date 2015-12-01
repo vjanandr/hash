@@ -76,6 +76,7 @@ hashMapOpen::getHashKey (hashNodeKey *nodeKey)
             hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength);
             break;
     }
+    log->verbose("Hkey generated %d\n", hkey);
     return hkey;
 }
 
@@ -84,7 +85,8 @@ apiRetVal hashMapOpen::add (hashNodeKey *key, void *data)
     uint32_t hashKey;
     hashNode *node, *newNode = NULL;
 
-    if (data) {
+    if (!data) {
+        log->error("Null data while adding\n");
         return (API_RETVAL_INVALID_INPUT);
     }
     hashKey = getHashKey(key);
@@ -96,6 +98,7 @@ apiRetVal hashMapOpen::add (hashNodeKey *key, void *data)
     newNode->next = node;
     newNode->nodeState = HASH_NODE_USED;
     numberOfElements++;
+    log->info("Data added to hash table \n");
     return API_RETVAL_SUCCESS;
 }
 
@@ -106,12 +109,13 @@ hashMapOpen::walk (walkcbk cbk)
     uint32_t tableIndex = 0;
 
     if (!cbk) {
+        log->error("Null cbk in walk\n");
         return (API_RETVAL_INVALID_INPUT);
     }
-    while (tableIndex <= tableLength) {
+    while (tableIndex < tableLength) {
         node = hashTable[tableIndex];
         while (node) {
-            if (cbk(node->data) != CBK_RET_CONTINUE) {
+            if (cbk(&node->nodeKey, node->data) != CBK_RET_CONTINUE) {
                 return API_RETVAL_SUCCESS;
             }
             node = node->next;

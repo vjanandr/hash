@@ -64,13 +64,15 @@ void logger::setError (bool on)
     this->errorOn = on;
 }
 
+void logger::setInfo (bool on)
+{
+    this->infoOn = on;
+}
 void logger::logg (const char *levelstr, 
                    const char *fmt, va_list vargs)
 {
-    char buf[1024];
     fprintf(logFile, "[%s] [%-7s] - ", prgmName, levelstr);
-    sprintf(buf, fmt, vargs);
-    fprintf(logFile, "%s", buf);
+    vfprintf(logFile, fmt, vargs);
 }
 
 void logger::verbose (const char *fmt, ...)

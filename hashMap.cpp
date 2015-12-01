@@ -33,14 +33,19 @@ bool hashMap::keyCmp (hashNodeKey *key1, hashNodeKey *key2)
 {
     bool keyCmp = false;
     if (!key1 || !key2) {
+        log->error("Invalid input key1 %p, key2 %p\n", key1, key2);
         return keyCmp;
     }
 
     if (key1->keyType != key2->keyType) {
+        log->verbose("KeyType din't match key1 type %d key2 type %d\n",
+                      key1->keyType, key2->keyType);
         return keyCmp;
     }
 
     if (key1->keyByteLength != key2->keyByteLength) {
+        log->verbose("Keybyte length dint match keyByteLength1 %d, "
+                "keyByteLength2 %d", key1->keyByteLength, key2->keyByteLength);
         return keyCmp;
     }
 
@@ -55,6 +60,8 @@ bool hashMap::keyCmp (hashNodeKey *key1, hashNodeKey *key2)
             keyCmp = (!memcmp(key1->byteKey, key2->byteKey,
                               key1->keyByteLength));
     }
+    log->debug("Keys match %s type %d\n", keyCmp ? "Passed":"Failed",
+            key1->keyType);
     return keyCmp;
 }
 

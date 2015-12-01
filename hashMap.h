@@ -11,7 +11,7 @@ typedef enum cbkRetVal_ {
     CBK_RET_EQUAL,
 } cbkRetVal;
 
-typedef cbkRetVal (*walkcbk)(void *data);
+typedef cbkRetVal (*walkcbk)(hashNodeKey *key, void *data);
 
 class hashMap {
     public:
