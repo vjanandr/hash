@@ -1,1 +1,1 @@
-Hash implementation
+Hash implementation open and closed hashing
