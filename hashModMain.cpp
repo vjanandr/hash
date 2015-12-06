@@ -29,7 +29,7 @@ int main (int argc, char *argv[])
     log->setError(true);
     log->setInfo(true);
 
-    hashMap *hash = new hashMapOpen(10, HASHING_SIMPLE_MOD_INTEGER, log);
+    hashMap *hash = new hashMapOpen(10, log);
 
     cout << "Enter filename to read from: ";
     cin >> fileName;
@@ -54,6 +54,7 @@ int main (int argc, char *argv[])
         key.keyType = HASH_NODE_KEY_INT;
         key.keyByteLength = sizeof(uint32_t);
         key.intKey = slNo;
+        key.keyType = HASH_NODE_KEY_INT;
         hash->add(&key, name);
     }
     inFile.close();

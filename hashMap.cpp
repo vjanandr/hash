@@ -8,6 +8,7 @@ hashMap::hashMap(logger *log)
     this->log = log;
     this->tableLength = HASHMAP_DEF_TABLE_LENGTH;
     this->numberOfElements = 0;
+    this->fcbk = NULL;
     log->verbose("Hash Map created with table length %d \n",tableLength);
 }
 
@@ -16,7 +17,14 @@ hashMap::hashMap (int tableLength, logger *log)
     this->log = log;
     this->tableLength = tableLength;
     this->numberOfElements = 0;
+    this->fcbk = NULL;
     log->verbose("Hash Map created with table length %d \n",tableLength);
+}
+
+void
+hashMap::setFreeCbk (freecbk fcbk)
+{
+    this->fcbk = fcbk;
 }
 
 int hashMap::getTableLength()
@@ -63,5 +71,53 @@ bool hashMap::keyCmp (hashNodeKey *key1, hashNodeKey *key2)
     log->debug("Keys match %s type %d\n", keyCmp ? "Passed":"Failed",
             key1->keyType);
     return keyCmp;
+}
+
+uint32_t
+hashMap::hashSimpleModInteger (uint32_t key)
+{
+    return (key % this->tableLength);
+}
+
+uint32_t
+hashMap::hashSimpleModString (char *str, uint32_t bytelength)
+{
+    uint32_t i = 0, sum = 0;
+
+    if (!str) {
+        return 0;
+    }
+
+    while (i <= bytelength && str[i]) {
+        sum += str[i];
+        i++;
+    }
+    return (sum % this->tableLength);
+}
+
+uint32_t
+hashMap::hashCRC (uint8_t *bytes,  uint32_t keyByteLength)
+{
+    return (0);
+}
+
+uint32_t
+hashMap::getHashKey (hashNodeKey *nodeKey)
+{
+    uint32_t hkey;
+
+    switch (nodeKey->keyType) {
+        case HASH_NODE_KEY_INT:
+            hkey = hashSimpleModInteger(nodeKey->intKey);
+            break;
+        case HASH_NODE_KEY_STRING:
+            hkey = hashSimpleModString(nodeKey->strKey, nodeKey->keyByteLength);
+            break;
+        case HASH_NODE_KEY_BYTE:
+            hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength);
+            break;
+    }
+    log->verbose("Hkey generated %d\n", hkey);
+    return hkey;
 }
 

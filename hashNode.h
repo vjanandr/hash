@@ -2,9 +2,9 @@
 #define __HASH_NODE_H__
 
 typedef enum hashNodeState_ {
-    HASH_NODE_EMPTY,
-    HASH_NODE_USED,
-    HASH_NODE_DELETED
+    HASH_NODE_EMPTY = 0x01,
+    HASH_NODE_DELETED = 0x02,
+    HASH_NODE_USED = 0x04,
 } hashNodeState;
 
 typedef enum hashNodeKeyType_ {

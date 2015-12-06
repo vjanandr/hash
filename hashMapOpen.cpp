@@ -10,74 +10,16 @@ void hashMapOpen::tableInit ()
     log->debug("Hash Open map Table Length %d\n", tableLength);
 }
     
-
-hashMapOpen::hashMapOpen (int tableLength, hashEnum hashtype, logger *log) 
-    : hashMap(tableLength, log)
-{
-    this->hashType = hashtype;
-    tableInit();
-}
-
 hashMapOpen::hashMapOpen (int tableLength, logger *log)
     : hashMap(tableLength, log)
 {
-    this->hashType = HASHING_CRC;
     tableInit();
 }
 
 hashMapOpen::hashMapOpen (logger *log)
     : hashMap(log)
 {
-    this->hashType = HASHING_CRC;
     tableInit();
-}
-
-uint32_t 
-hashMapOpen::hashSimpleModInteger (uint32_t key)
-{
-    return (key % this->tableLength);
-}
-
-uint32_t
-hashMapOpen::hashSimpleModString (char *str, uint32_t bytelength)
-{
-    uint32_t i = 0, sum = 0;
-
-    if (!str) {
-        return 0;
-    }
-
-    while (i <= bytelength && str[i]) {
-        sum += str[i];
-        i++;
-    }
-    return (sum % this->tableLength);
-}
-
-uint32_t 
-hashMapOpen::hashCRC (uint8_t *bytes,  uint32_t keyByteLength)
-{
-    return (0);
-}
-
-uint32_t 
-hashMapOpen::getHashKey (hashNodeKey *nodeKey)
-{
-    uint32_t hkey;
-
-    switch (hashType) {
-        case HASHING_SIMPLE_MOD_INTEGER:
-            hkey = hashSimpleModInteger(nodeKey->intKey);
-            break;
-        case HASHING_SIMPLE_MOD_STRING:
-            hkey = hashSimpleModString(nodeKey->strKey, nodeKey->keyByteLength);
-            break;
-        case HASHING_CRC:
-            hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength);
-            break;
-    }
-    log->verbose("Hkey generated %d\n", hkey);
-    return hkey;
 }
 
 apiRetVal hashMapOpen::add (hashNodeKey *key, void *data)
@@ -175,4 +117,25 @@ hashMapOpen::remove (hashNodeKey *key, void **data)
         node = node->next;
     }
     return API_RETVAL_DATA_NOT_FOUND;
+}
+
+hashMapOpen::~hashMapOpen()
+{
+    hashNode *node, *prevNode;
+    uint32_t tableIndex = 0;
+
+    while (tableIndex < tableLength) {
+        node = hashTable[tableIndex];
+        while (node) {
+            if (fcbk) {
+                fcbk(&node->nodeKey, node->data); 
+            }
+            prevNode = node;
+            node = node->next;
+            free(prevNode);
+        }
+        hashTable[tableIndex] = NULL;
+        tableIndex++;
+    }
+    free(hashTable);
 }
