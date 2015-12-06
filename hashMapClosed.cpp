@@ -111,6 +111,7 @@ hashMapClosed::getPositionDoubleProbing (hashNodeKey *key, uint32_t nodeState)
     hkey1 = getHashKey(key);
     hkey2 = 7 - getHashKey(key, 7);
     if (!hkey2) {
+        log->verbose("0 hkey2 regenerating again\n");
         hkey2 = 1 + getHashKey(key, 7);
     }
     position = hkey1;
@@ -166,8 +167,14 @@ hashMapClosed::getPosition (hashNodeKey *key, uint32_t nodeState)
 void
 hashMapClosed::tableInit()
 {
+    uint32_t iter = 0;
+
     this->hashTable = (hashNode *)malloc(sizeof(hashNode) * this->tableLength);
-    log->debug("Hash closed map table length %d\n", tableLength);
+    while (iter < tableLength) {
+        hashTable[iter].nodeState = HASH_NODE_EMPTY;
+        iter++;
+    }
+    log->verbose("Hash closed map table length %d created\n", tableLength);
 }
 
 bool
@@ -279,8 +286,6 @@ hashMapClosed :: rehashTable (void)
     free(oldHashTable);
 }
 
-
-
 apiRetVal hashMapClosed::add (hashNodeKey *key, void *data)
 {
     uint32_t position;
@@ -295,11 +300,8 @@ apiRetVal hashMapClosed::add (hashNodeKey *key, void *data)
                                 HASH_NODE_DELETED); 
 
     if (position >= tableLength) {
-        if (rehash) {
-        } else {
-            log->error("No space left in the table\n");
-            return (API_RETVAL_FAILED);
-        }
+        log->error("No space left in the table position %d\n", position);
+        return (API_RETVAL_FAILED);
     }
     node = &hashTable[position];
 
@@ -312,7 +314,7 @@ apiRetVal hashMapClosed::add (hashNodeKey *key, void *data)
         rehashTable();
     }
 
-    log->info("Data added to hash table\n");
+    log->info("Data added to hash table at %d\n",position);
     return (API_RETVAL_SUCCESS);
 }
 
@@ -329,6 +331,7 @@ apiRetVal hashMapClosed::remove (hashNodeKey *key, void **data)
     position = getPosition(key, HASH_NODE_USED);
 
     if (position >= tableLength) {
+        log->error("Data not found while deleting position %d\n",position);
         return (API_RETVAL_DATA_NOT_FOUND);
     }
     node = &hashTable[position];
@@ -338,7 +341,7 @@ apiRetVal hashMapClosed::remove (hashNodeKey *key, void **data)
     node->nodeState = HASH_NODE_DELETED;
     node->data = NULL;
 
-    log->info("Data removed from hash table\n");
+    log->info("Data removed from hash table position %d\n", position);
     return (API_RETVAL_SUCCESS);
 }
 
@@ -355,6 +358,7 @@ apiRetVal hashMapClosed::find (hashNodeKey *key, void **data)
     position = getPosition(key, HASH_NODE_USED);
 
     if (position >= tableLength) {
+        log->error("Data not found position %d\n",position);
         return (API_RETVAL_DATA_NOT_FOUND);
     }
     node = &hashTable[position];
@@ -362,6 +366,6 @@ apiRetVal hashMapClosed::find (hashNodeKey *key, void **data)
     *data = node->data; 
     node->nodeKey = *key;
 
-    log->info("Data found in hash table\n");
+    log->info("Data found in hash table at position %d\n",position);
     return (API_RETVAL_SUCCESS);
 }
