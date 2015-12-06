@@ -27,9 +27,11 @@ class hashMap {
         int getNumberOfElements();
 
     private:
-        uint32_t hashSimpleModInteger(uint32_t key);
-        uint32_t hashSimpleModString(char *str, uint32_t bytelength);
-        uint32_t hashCRC(uint8_t *bytes, uint32_t len);
+        uint32_t hashSimpleModInteger(uint32_t key, uint32_t modLength);
+        uint32_t hashSimpleModString(char *str, uint32_t bytelength, 
+                                     uint32_t modLength);
+        uint32_t hashCRC(uint8_t *bytes, uint32_t len, 
+                         uint32_t modLength);
 
     protected:
         logger *log;
@@ -37,7 +39,8 @@ class hashMap {
         uint32_t tableLength;
         uint32_t numberOfElements;
         bool keyCmp(hashNodeKey *key1, hashNodeKey *key2);
-        uint32_t getHashKey (hashNodeKey *nodeKey);
+        uint32_t getHashKey(hashNodeKey *nodeKey);
+        uint32_t getHashKey(hashNodeKey *nodeKey, uint32_t modLength);
 };
 
 #endif

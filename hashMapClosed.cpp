@@ -1,10 +1,37 @@
 #include "hashMapClosed.h"
+#define MAX_ITER 10
+
+char *
+hashMapClosed::NodeStateString (uint32_t nodeState)
+{
+    char str[1024];
+    string *nodeStr = NULL;
+
+    if (nodeState & HASH_NODE_USED) {
+        nodeStr = "NODE_USED";
+    }
+    if (nodeState & HASH_NODE_EMPTY) {
+        if (nodeStr) {
+            nodeStr = nodeStr+":NODE_EMPTY";
+        } else {
+            nodeStr = "NODE_EMPTY";
+        }
+    }
+    if (nodeState & HASH_NODE_DELETED) {
+        if (nodeStr) {
+            nodeStr = nodeStr+":NODE_DELETED";
+        } else {
+            nodeStr = "NODE_DELETED";
+        }
+    }
+    return nodeStr;
+}
 
 uint32_t
 hashMapClosed::getPositionLinearProbing (hashNodeKey *key, uint32_t nodeState)
 {
     hashNode *node = NULL;
-    uint32_t iter = 1;
+    uint32_t iter = 1, iterCnt = 0;
     uint32_t position, hkey;
 
     hkey = getHashKey(key);
@@ -27,8 +54,15 @@ hashMapClosed::getPositionLinearProbing (hashNodeKey *key, uint32_t nodeState)
             }
         } else {
             // Something wrong;
+            log->error("Invalid node state %d \n",nodeState);
             return (tableLength + 1);
         }
+        if (iterCnt > MAX_ITER * tableLength) {
+            log->error("Max Iter reached node not found %s\n",
+                        NodeStateString(nodeState));
+            return (tableLength + 1);
+        }
+        iterCnt++;
         position = (hkey + iter++);
     }
 }
@@ -36,33 +70,85 @@ hashMapClosed::getPositionLinearProbing (hashNodeKey *key, uint32_t nodeState)
 uint32_t
 hashMapClosed::getPositionQuadProbing (hashNodeKey *key, uint32_t nodeState)
 {
-    uint32_t step = 1;
-    uint32_t wrapped = false;
-    uint32_t iter = 0;
+    uint32_t itercnt = 0;
+    uint32_t iter = 1;
     uint32_t position, hkey;
 
-    hkey = getHashKey(key);
+    hkey = gethashkey(key);
     position = hkey;
     while (true) {
-        step++;
-        if (hashTable[position].nodeState == nodeState ||
-            hashTable[position].nodeState & nodeState) {
-            return position;
-        }
-        position = hkey + step * step;
-        if (position >= tableLength) {
-            if (wrapped) {
-                return tableLength + 1;
+        position = position % tablelength;
+        node = &hashtable[position];
+
+        if (nodestate & HASH_NODE_USED) {
+            if ((node->nodestate & HASH_NODE_USED) &&
+                (keycmp(key, &node->key))) {
+                return position;
             }
-            wrapped = true;
-            position = 0;
+            if (node->nodestate & HASH_NODE_EMPTY) {
+                return (tablelength + 1);
+            }
+        } else if (nodestate & (HASH_NODE_EMPTY | HASH_NODE_DELETED)) {
+            if (node->nodestate & nodestate) {
+                return position;
+            }
+        } else {
+            // something wrong;
+            log->error("Invalid node state %d \n",nodeState);
+            return (tablelength + 1);
         }
+        if (itercnt > max_iter * tablelength) {
+            log->error("max iter reached node not found \n");
+            return (tablelength + 1);
+        }
+        itercnt++;
+        position = (hkey + iter * iter);
+        iter++;
     }
 }
 
 uint32_t 
 hashMapClosed::getPositionDoubleProbing (hashNodeKey *key, uint32_t nodeState)
 {
+    uint32_t itercnt = 0;
+    uint32_t iter = 1;
+    uint32_t position, hkey1, hkey2;
+
+    hkey = gethashkey(key);
+    hkey2 = 7 - gethashkey(key, 7);
+    if (!hkey2) {
+        hkey2 = 1 + gethashkey(key, 7);
+    }
+    position = hkey;
+    while (true) {
+        position = position % tablelength;
+        node = &hashtable[position];
+
+        if (nodestate & HASH_NODE_USED) {
+            if ((node->nodestate & HASH_NODE_USED) &&
+                (keycmp(key, &node->key))) {
+                return position;
+            }
+            if (node->nodestate & HASH_NODE_EMPTY) {
+                return (tablelength + 1);
+            }
+        } else if (nodestate & (HASH_NODE_EMPTY | HASH_NODE_DELETED)) {
+            if (node->nodestate & nodestate) {
+                return position;
+            }
+        } else {
+            // something wrong;
+            log->error("Invalid node state %d \n",nodeState);
+            return (tablelength + 1);
+        }
+        if (itercnt > max_iter * tablelength) {
+            log->error("max iter reached node not found \n");
+            return (tablelength + 1);
+        }
+        itercnt++;
+        position = (hkey1 + iter * hkey2);
+        iter++;
+    }
 }
 
 hashMapClosed::tableInit()

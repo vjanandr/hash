@@ -74,13 +74,14 @@ bool hashMap::keyCmp (hashNodeKey *key1, hashNodeKey *key2)
 }
 
 uint32_t
-hashMap::hashSimpleModInteger (uint32_t key)
+hashMap::hashSimpleModInteger (uint32_t key, uint32_t modLength)
 {
-    return (key % this->tableLength);
+    return (key % modLength);
 }
 
 uint32_t
-hashMap::hashSimpleModString (char *str, uint32_t bytelength)
+hashMap::hashSimpleModString (char *str, uint32_t bytelength,  
+                              uint32_t modLength)
 {
     uint32_t i = 0, sum = 0;
 
@@ -92,13 +93,35 @@ hashMap::hashSimpleModString (char *str, uint32_t bytelength)
         sum += str[i];
         i++;
     }
-    return (sum % this->tableLength);
+    return (sum % modLength);
 }
 
 uint32_t
-hashMap::hashCRC (uint8_t *bytes,  uint32_t keyByteLength)
+hashMap::hashCRC (uint8_t *bytes,  uint32_t keyByteLength, uint32_t modLength)
 {
     return (0);
+}
+
+uint32_t
+hashMap::getHashKey (hashNodeKey *nodeKey, uint32_t modLength)
+{
+    uint32_t hkey;
+
+    switch (nodeKey->keyType) {
+        case HASH_NODE_KEY_INT:
+            hkey = hashSimpleModInteger(nodeKey->intKey, modLength);
+            break;
+        case HASH_NODE_KEY_STRING:
+            hkey = hashSimpleModString(nodeKey->strKey, nodeKey->keyByteLength,
+                                       modLength);
+            break;
+        case HASH_NODE_KEY_BYTE:
+            hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength, 
+                           modLength);
+            break;
+    }
+    log->verbose("Hkey generated %d\n", hkey);
+    return hkey;
 }
 
 uint32_t
@@ -108,16 +131,17 @@ hashMap::getHashKey (hashNodeKey *nodeKey)
 
     switch (nodeKey->keyType) {
         case HASH_NODE_KEY_INT:
-            hkey = hashSimpleModInteger(nodeKey->intKey);
+            hkey = hashSimpleModInteger(nodeKey->intKey, tableLength);
             break;
         case HASH_NODE_KEY_STRING:
-            hkey = hashSimpleModString(nodeKey->strKey, nodeKey->keyByteLength);
+            hkey = hashSimpleModString(nodeKey->strKey, nodeKey->keyByteLength,
+                                       tableLength);
             break;
         case HASH_NODE_KEY_BYTE:
-            hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength);
+            hkey = hashCRC(nodeKey->byteKey, nodeKey->keyByteLength, 
+                           tableLength);
             break;
     }
     log->verbose("Hkey generated %d\n", hkey);
     return hkey;
 }
-
