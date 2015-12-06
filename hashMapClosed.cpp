@@ -1,30 +1,22 @@
 #include "hashMapClosed.h"
-#define MAX_ITER 10
+#include <math.h>
+#define MAX_ITER 2
 
-char *
+const char* 
 hashMapClosed::NodeStateString (uint32_t nodeState)
 {
-    char str[1024];
-    string *nodeStr = NULL;
+    std::string nodeStr = NULL;
 
     if (nodeState & HASH_NODE_USED) {
-        nodeStr = "NODE_USED";
+        nodeStr += "NODE_USED";
     }
     if (nodeState & HASH_NODE_EMPTY) {
-        if (nodeStr) {
-            nodeStr = nodeStr+":NODE_EMPTY";
-        } else {
-            nodeStr = "NODE_EMPTY";
-        }
+        nodeStr +=":NODE_EMPTY";
     }
     if (nodeState & HASH_NODE_DELETED) {
-        if (nodeStr) {
-            nodeStr = nodeStr+":NODE_DELETED";
-        } else {
-            nodeStr = "NODE_DELETED";
-        }
+        nodeStr += ":NODE_DELETED";
     }
-    return nodeStr;
+    return nodeStr.data();
 }
 
 uint32_t
@@ -42,7 +34,7 @@ hashMapClosed::getPositionLinearProbing (hashNodeKey *key, uint32_t nodeState)
 
         if (nodeState & HASH_NODE_USED) {
             if ((node->nodeState & HASH_NODE_USED) &&
-                (keyCmp(key, &node->key))) {
+                (keyCmp(key, &node->nodeKey))) {
                 return position;
             }
             if (node->nodeState & HASH_NODE_EMPTY) {
@@ -70,36 +62,37 @@ hashMapClosed::getPositionLinearProbing (hashNodeKey *key, uint32_t nodeState)
 uint32_t
 hashMapClosed::getPositionQuadProbing (hashNodeKey *key, uint32_t nodeState)
 {
+    hashNode *node = NULL;
     uint32_t itercnt = 0;
     uint32_t iter = 1;
     uint32_t position, hkey;
 
-    hkey = gethashkey(key);
+    hkey = getHashKey(key);
     position = hkey;
     while (true) {
-        position = position % tablelength;
-        node = &hashtable[position];
+        position = position % tableLength;
+        node = &hashTable[position];
 
-        if (nodestate & HASH_NODE_USED) {
-            if ((node->nodestate & HASH_NODE_USED) &&
-                (keycmp(key, &node->key))) {
+        if (nodeState & HASH_NODE_USED) {
+            if ((node->nodeState & HASH_NODE_USED) &&
+                (keyCmp(key, &node->nodeKey))) {
                 return position;
             }
-            if (node->nodestate & HASH_NODE_EMPTY) {
-                return (tablelength + 1);
+            if (node->nodeState & HASH_NODE_EMPTY) {
+                return (tableLength + 1);
             }
-        } else if (nodestate & (HASH_NODE_EMPTY | HASH_NODE_DELETED)) {
-            if (node->nodestate & nodestate) {
+        } else if (nodeState & (HASH_NODE_EMPTY | HASH_NODE_DELETED)) {
+            if (node->nodeState & nodeState) {
                 return position;
             }
         } else {
             // something wrong;
             log->error("Invalid node state %d \n",nodeState);
-            return (tablelength + 1);
+            return (tableLength + 1);
         }
-        if (itercnt > max_iter * tablelength) {
+        if (itercnt > MAX_ITER * tableLength) {
             log->error("max iter reached node not found \n");
-            return (tablelength + 1);
+            return (tableLength + 1);
         }
         itercnt++;
         position = (hkey + iter * iter);
@@ -110,40 +103,41 @@ hashMapClosed::getPositionQuadProbing (hashNodeKey *key, uint32_t nodeState)
 uint32_t 
 hashMapClosed::getPositionDoubleProbing (hashNodeKey *key, uint32_t nodeState)
 {
+    hashNode *node = NULL;
     uint32_t itercnt = 0;
     uint32_t iter = 1;
     uint32_t position, hkey1, hkey2;
 
-    hkey = gethashkey(key);
-    hkey2 = 7 - gethashkey(key, 7);
+    hkey1 = getHashKey(key);
+    hkey2 = 7 - getHashKey(key, 7);
     if (!hkey2) {
-        hkey2 = 1 + gethashkey(key, 7);
+        hkey2 = 1 + getHashKey(key, 7);
     }
-    position = hkey;
+    position = hkey1;
     while (true) {
-        position = position % tablelength;
-        node = &hashtable[position];
+        position = position % tableLength;
+        node = &hashTable[position];
 
-        if (nodestate & HASH_NODE_USED) {
-            if ((node->nodestate & HASH_NODE_USED) &&
-                (keycmp(key, &node->key))) {
+        if (nodeState & HASH_NODE_USED) {
+            if ((node->nodeState & HASH_NODE_USED) &&
+                (keyCmp(key, &node->nodeKey))) {
                 return position;
             }
-            if (node->nodestate & HASH_NODE_EMPTY) {
-                return (tablelength + 1);
+            if (node->nodeState & HASH_NODE_EMPTY) {
+                return (tableLength + 1);
             }
-        } else if (nodestate & (HASH_NODE_EMPTY | HASH_NODE_DELETED)) {
-            if (node->nodestate & nodestate) {
+        } else if (nodeState & (HASH_NODE_EMPTY | HASH_NODE_DELETED)) {
+            if (node->nodeState & nodeState) {
                 return position;
             }
         } else {
             // something wrong;
             log->error("Invalid node state %d \n",nodeState);
-            return (tablelength + 1);
+            return (tableLength + 1);
         }
-        if (itercnt > max_iter * tablelength) {
+        if (itercnt > MAX_ITER * tableLength) {
             log->error("max iter reached node not found \n");
-            return (tablelength + 1);
+            return (tableLength + 1);
         }
         itercnt++;
         position = (hkey1 + iter * hkey2);
@@ -151,21 +145,50 @@ hashMapClosed::getPositionDoubleProbing (hashNodeKey *key, uint32_t nodeState)
     }
 }
 
+uint32_t
+hashMapClosed::getPosition (hashNodeKey *key, uint32_t nodeState)
+{
+    uint32_t position = 0;
+    switch (hashType) {
+        case HASH_CLOSED_LINEAR:
+            position = getPositionLinearProbing(key, nodeState);
+            break;
+        case HASH_CLOSED_QUADRATIC:
+            position = getPositionQuadProbing(key, nodeState);
+            break;
+        case HASH_CLOSED_DOUBLE:
+            position = getPositionDoubleProbing(key, nodeState);
+            break;
+    }
+    return position;
+}
+
+void
 hashMapClosed::tableInit()
 {
     this->hashTable = (hashNode *)malloc(sizeof(hashNode) * this->tableLength);
-    switch (hashType) {
-        case HASH_CLOSED_LINEAR:
-            getPosition = getPositionLinearProbing;
-            break;
-        case HASH_CLOSED_QUADRATIC:
-            getPosition = getPositionQuadProbing;
-            break;
-        case HASH_CLOSED_DOUBLE:
-            getPosition = getPositionDoubleProbing;
-            break;
-    }
     log->debug("Hash closed map table length %d\n", tableLength);
+}
+
+bool
+hashMapClosed::isPrime (uint32_t num) 
+{
+    int sq_root = sqrt(num);
+    for(int i = 2; i <= sq_root; i++) {
+        if (num % i == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+uint32_t
+hashMapClosed::getNextPrime (uint32_t num) 
+{
+    while (!isPrime(num)) {
+        num++;
+    }
+    return num;
 }
 
 hashMapClosed::hashMapClosed (int tableLength, hashClosedEnum hashtype, 
@@ -174,6 +197,7 @@ hashMapClosed::hashMapClosed (int tableLength, hashClosedEnum hashtype,
 {
     this->hashType = hashtype;
     this->rehash = rehash;
+    this->tableLength = getNextPrime(this->tableLength);
     tableInit();
 }
 hashMapClosed::hashMapClosed (int tableLength, bool rehash, logger *log):
@@ -181,6 +205,7 @@ hashMapClosed::hashMapClosed (int tableLength, bool rehash, logger *log):
 {
     this->hashType = HASH_CLOSED_LINEAR;
     this->rehash = rehash;
+    this->tableLength = getNextPrime(this->tableLength);
     tableInit();
 }
 
@@ -189,7 +214,30 @@ hashMapClosed::hashMapClosed (bool rehash, logger *log):
 {
     this->hashType = HASH_CLOSED_LINEAR;
     this->rehash = rehash;
+    this->tableLength = getNextPrime(this->tableLength);
     tableInit();
+}
+
+apiRetVal
+hashMapClosed::walk (walkcbk cbk)
+{
+    uint32_t iter = 0;
+    hashNode *node = NULL;
+
+    if (!numberOfElements) {
+        return API_RETVAL_SUCCESS;
+    }
+
+    while (iter < tableLength) {
+        node = &this->hashTable[iter];
+        if (node->nodeState & HASH_NODE_USED) {
+            if (cbk(&node->nodeKey, node->data) != CBK_RET_CONTINUE) {
+                return API_RETVAL_SUCCESS;
+            }
+        }
+        iter++;
+    }
+    return API_RETVAL_SUCCESS;
 }
 
 hashMapClosed::~hashMapClosed ()
@@ -200,7 +248,40 @@ hashMapClosed::~hashMapClosed ()
     free(hashTable);
 }
 
-apiRetVal hashMapClosed::add(hashNodeKey *key, void *data)
+void
+hashMapClosed :: rehashTable (void)
+{
+    uint32_t iter = 0, oldTableLength; 
+    hashNode *node = NULL;
+    hashNode *oldHashTable = NULL;
+
+    if (!numberOfElements) {
+        return;
+    }
+    log->info("Rehashing started\n");
+
+    oldTableLength = tableLength;
+    oldHashTable = this->hashTable; 
+    
+    this->numberOfElements = 0;
+    this->hashTable = NULL;
+    this->tableLength = getNextPrime(tableLength*2);
+    tableInit();
+
+    while (iter < oldTableLength) {
+        node = &oldHashTable[iter];
+        if (node->nodeState & HASH_NODE_USED) {
+            add(&node->nodeKey, node->data);
+        }
+        iter++;
+    }
+    log->info("Rehashing Done\n");
+    free(oldHashTable);
+}
+
+
+
+apiRetVal hashMapClosed::add (hashNodeKey *key, void *data)
 {
     uint32_t position;
     hashNode *node = NULL;
@@ -224,7 +305,63 @@ apiRetVal hashMapClosed::add(hashNodeKey *key, void *data)
 
     node->data = data;
     node->nodeKey = *key;
+    node->nodeState = HASH_NODE_USED;
+    numberOfElements++;
+
+    if (rehash && (numberOfElements * 2 > tableLength)) {
+        rehashTable();
+    }
 
     log->info("Data added to hash table\n");
+    return (API_RETVAL_SUCCESS);
+}
+
+apiRetVal hashMapClosed::remove (hashNodeKey *key, void **data)
+{
+    uint32_t position;
+    hashNode *node = NULL;
+
+    if (!data || !key) {
+        log->error("Null data while removing\n");
+        return (API_RETVAL_INVALID_INPUT);
+    }
+
+    position = getPosition(key, HASH_NODE_USED);
+
+    if (position >= tableLength) {
+        return (API_RETVAL_DATA_NOT_FOUND);
+    }
+    node = &hashTable[position];
+
+    *data = node->data; 
+    node->nodeKey = *key;
+    node->nodeState = HASH_NODE_DELETED;
+    node->data = NULL;
+
+    log->info("Data removed from hash table\n");
+    return (API_RETVAL_SUCCESS);
+}
+
+apiRetVal hashMapClosed::find (hashNodeKey *key, void **data)
+{
+    uint32_t position;
+    hashNode *node = NULL;
+
+    if (!data || !key) {
+        log->error("Null data while removing\n");
+        return (API_RETVAL_INVALID_INPUT);
+    }
+
+    position = getPosition(key, HASH_NODE_USED);
+
+    if (position >= tableLength) {
+        return (API_RETVAL_DATA_NOT_FOUND);
+    }
+    node = &hashTable[position];
+
+    *data = node->data; 
+    node->nodeKey = *key;
+
+    log->info("Data found in hash table\n");
     return (API_RETVAL_SUCCESS);
 }

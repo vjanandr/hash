@@ -15,7 +15,6 @@ class hashMapOpen: public hashMap
         apiRetVal find(hashNodeKey *key, void **data);
         apiRetVal add(hashNodeKey *key, void *data);
         apiRetVal remove(hashNodeKey *key, void **data);
-        void setFreeCbk(freecbk fcbk);
 
     private:
         hashNode **hashTable;

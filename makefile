@@ -2,7 +2,7 @@ CC=g++
 CFLAGS=-Wall -g
 ODIR=obj
 BDIR=./bin/
-SOURCES=hashMap.cpp hashUtil.cpp hashMapOpen.cpp logger.cpp
+SOURCES=hashMap.cpp hashUtil.cpp hashMapOpen.cpp logger.cpp hashMapClosed.cpp
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst %,$(ODIR)/%,$(_OBJECTS))
 

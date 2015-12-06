@@ -4,6 +4,7 @@
 #include "hashUtil.h"
 #include "hashNode.h"
 #include "logger.h"
+#include <string>
 
 typedef enum cbkRetVal_ {
     CBK_RET_CONTINUE,
