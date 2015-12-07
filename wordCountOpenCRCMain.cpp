@@ -7,12 +7,14 @@
 
 
 using namespace std;
+uint32_t totalCount = 0;
 
 cbkRetVal
 walkCbkFunc (hashNodeKey *key, void *data)
 {
     uint32_t *count = (uint32_t *)data;
     printf("\n%-10d | %s", *count,key->strKey) ;
+    totalCount += *count;
     return CBK_RET_CONTINUE;
 }
 
@@ -84,6 +86,8 @@ int main (int argc, char *argv[])
     printf("\n%-10s | Word","Count");
     printf("\n-------------------------");
     hash->walk(walkCbkFunc);
+    cout << "\n";
+    cout << "\nTotal Word - "<<totalCount;
     cout << "\n";
     return 0;
 }

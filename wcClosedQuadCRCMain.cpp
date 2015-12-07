@@ -2,7 +2,7 @@
 #include <string>
 #include <fstream>
 #include "hashMap.h"
-#include "hashMapOpen.h"
+#include "hashMapClosed.h"
 #include <string.h>
 
 
@@ -32,7 +32,7 @@ int main (int argc, char *argv[])
     log->setError(true);
     log->setInfo(true);
 
-    hashMap *hash = new hashMapOpen(10, log);
+    hashMap *hash = new hashMapClosed(10, HASH_CLOSED_QUADRATIC, true, log);
 
     if (argc > 1) {
         inFile.open(argv[1]);
@@ -63,13 +63,13 @@ int main (int argc, char *argv[])
             wordtmp2 = wordtmp + 1;
             wordlen = wordlen -1;
         }
-        key.keyType = HASH_NODE_KEY_STRING;
+        key.keyType = HASH_NODE_KEY_BYTE;
         key.keyByteLength = wordlen+1;
         key.strKey = wordtmp2;
         count = NULL;
         if (hash->find(&key, (void **)&count) == API_RETVAL_SUCCESS) {
             if (count) {
-                log->info("increment count %d\n",*count);
+                log->info("increment count %d %p\n",*count);
                 *count = *count +1;
             } 
         } else {
