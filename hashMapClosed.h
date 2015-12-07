@@ -33,6 +33,7 @@ class hashMapClosed : public hashMap {
         uint32_t getPositionLinearProbing(hashNodeKey *key, uint32_t nodeState);
         uint32_t getPositionQuadProbing(hashNodeKey *key, uint32_t nodeState);
         uint32_t getPositionDoubleProbing(hashNodeKey *key, uint32_t nodeState);
+        void printTable();
 };
 
 #endif

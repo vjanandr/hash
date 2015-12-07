@@ -6,7 +6,7 @@ SOURCES=hashMap.cpp hashUtil.cpp hashMapOpen.cpp logger.cpp hashMapClosed.cpp
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst %,$(ODIR)/%,$(_OBJECTS))
 
-all: mkdir hashmod wordCountOpen wordCountOpenCRC
+all: mkdir hashmod wcOpen wcOpenCRC wcClosedLinearCRC
 
 clean:
 	rm -rf obj
@@ -25,8 +25,11 @@ $(ODIR)/%.o: %.cpp
 hashmod: $(OBJECTS) hashModMain.cpp
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
 
-wordCountOpen: $(OBJECTS) wordCountOpenMain.cpp
+wcOpen: $(OBJECTS) wordCountOpenMain.cpp
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
 
-wordCountOpenCRC: $(OBJECTS) wordCountOpenCRCMain.cpp
+wcOpenCRC: $(OBJECTS) wordCountOpenCRCMain.cpp
+	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
+
+wcClosedLinearCRC: $(OBJECTS) wcClosedLinearCRCMain.cpp
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)

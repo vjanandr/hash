@@ -2,10 +2,36 @@
 #include <math.h>
 #define MAX_ITER 2
 
+void
+hashMapClosed::printTable()
+{
+    uint32_t iter = 0;
+    hashNode *node = NULL;
+    uint32_t *count;
+
+    if (!numberOfElements) {
+        return ;
+    }
+
+    while (iter < tableLength) {
+        node = &this->hashTable[iter];
+        printf("\nstate %s",NodeStateString(node->nodeState));
+        printf(" Key %s",node->nodeKey.strKey);
+        if (node->data) {
+            count = (uint32_t *)node->data;
+            printf(" data %d", *count);
+        } else {
+            printf("data NULL");
+        }
+        iter++;
+    }
+    printf("\n");
+}
+
 const char* 
 hashMapClosed::NodeStateString (uint32_t nodeState)
 {
-    std::string nodeStr = NULL;
+    std::string nodeStr;
 
     if (nodeState & HASH_NODE_USED) {
         nodeStr += "NODE_USED";
@@ -364,7 +390,6 @@ apiRetVal hashMapClosed::find (hashNodeKey *key, void **data)
     node = &hashTable[position];
 
     *data = node->data; 
-    node->nodeKey = *key;
 
     log->info("Data found in hash table at position %d\n",position);
     return (API_RETVAL_SUCCESS);
