@@ -6,7 +6,7 @@ SOURCES=hashMap.cpp hashUtil.cpp hashMapOpen.cpp logger.cpp hashMapClosed.cpp
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst %,$(ODIR)/%,$(_OBJECTS))
 
-all: mkdir hashmod wordCount
+all: mkdir hashmod wordCountOpen
 
 clean:
 	rm -rf obj
@@ -25,5 +25,5 @@ $(ODIR)/%.o: %.cpp
 hashmod: $(OBJECTS) hashModMain.cpp
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
 
-wordCount: $(OBJECTS) wordCountMain.cpp
+wordCountOpen: $(OBJECTS) wordCountOpenMain.cpp
 	$(CC) -o $(BDIR)/$@ $^ $(CFLAGS)
