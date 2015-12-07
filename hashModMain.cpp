@@ -31,10 +31,14 @@ int main (int argc, char *argv[])
 
     hashMap *hash = new hashMapOpen(10, log);
 
-    cout << "Enter filename to read from: ";
-    cin >> fileName;
+    if (argc > 1) {
+        inFile.open(argv[1]);
+    } else {
+        cout << "Enter filename to read from: ";
+        cin >> fileName;
+        inFile.open(fileName.data());
+    }
 
-    inFile.open(fileName.data());
 
     if (inFile.fail()) {
         cout <<"\nFailed to open file "<<fileName;
