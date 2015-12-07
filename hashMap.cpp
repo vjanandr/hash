@@ -53,7 +53,8 @@ bool hashMap::keyCmp (hashNodeKey *key1, hashNodeKey *key2)
 
     if (key1->keyByteLength != key2->keyByteLength) {
         log->verbose("Keybyte length dint match keyByteLength1 %d, "
-                "keyByteLength2 %d", key1->keyByteLength, key2->keyByteLength);
+                "keyByteLength2 %d\n", key1->keyByteLength, 
+                key2->keyByteLength);
         return keyCmp;
     }
 
@@ -89,10 +90,11 @@ hashMap::hashSimpleModString (char *str, uint32_t bytelength,
         return 0;
     }
 
-    while (i <= bytelength && str[i]) {
+    while (i < bytelength && str[i]) {
         sum += str[i];
         i++;
     }
+    log->verbose("Hash string sum %d\n", sum);
     return (sum % modLength);
 }
 
