@@ -111,7 +111,7 @@ uint32_t
 hashMap::hashCRC (uint8_t *bytes,  uint32_t keyByteLength, uint32_t modLength)
 {
    uint32_t i, j;
-   unsigned int byte, crc, mask;
+   unsigned int byte, crc, mask, crcComp;
    char *message = (char *)bytes;
 
    i = 0;
@@ -119,13 +119,15 @@ hashMap::hashCRC (uint8_t *bytes,  uint32_t keyByteLength, uint32_t modLength)
    while (i < keyByteLength) {
       byte = message[i];            // Get next byte.
       crc = crc ^ byte;
-      for (j = 7; j >= 0; j--) {    // Do eight times.
+      for (j = 8; j > 0; j--) {    // Do eight times.
          mask = -(crc & 1);
          crc = (crc >> 1) ^ (0xEDB88320 & mask);
       }
       i++;
    }
-   return (~crc) % modLength;
+   crcComp = ~crc;
+   log->verbose("CRC calculated %u/%u\n",crc, crcComp);
+   return (crcComp % modLength);
 }
 
 uint32_t
