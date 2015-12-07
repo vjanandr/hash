@@ -1,4 +1,5 @@
 CC=g++
+#CFLAGS=-Wall -g -DDEBUG
 CFLAGS=-Wall -g
 ODIR=obj
 BDIR=./bin/

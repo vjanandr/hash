@@ -27,10 +27,12 @@ int main (int argc, char *argv[])
     int wordlen;
     hashNodeKey key;
     logger *log = new logger(argv[0], stdout);
+#ifdef DEBUG
     log->setDebug(true);
     log->setVerbose(true);
     log->setError(true);
     log->setInfo(true);
+#endif
 
     hashMap *hash = new hashMapOpen(10, log);
 
