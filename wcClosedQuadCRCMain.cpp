@@ -54,6 +54,7 @@ int main (int argc, char *argv[])
         wordtmp2 = wordtmp;
         if (wordtmp[wordlen-1] == '\n' ||
             wordtmp[wordlen-1] == ',' ||
+            wordtmp[wordlen-1] == ':' ||
             wordtmp[wordlen-1] == '.') {
             wordtmp[wordlen-1] = '\0';
             wordlen = wordlen -1;
@@ -61,6 +62,7 @@ int main (int argc, char *argv[])
 
         if (wordtmp[0] == '\n' ||
             wordtmp[0] == ',' ||
+            wordtmp[0] == ':' ||
             wordtmp[0] == '.') {
             wordtmp2 = wordtmp + 1;
             wordlen = wordlen -1;
